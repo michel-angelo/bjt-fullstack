@@ -1,32 +1,77 @@
-//src/pages/Jadwal.jsx
 import { useState, useEffect } from "react";
 
-function Jadwal() {
-  const [jadwal, setJadwal] = useState(() => {
-    const simpanan = localStorage.getItem("jadwalKuliah");
-    return simpanan ? JSON.parse(simpanan) : [];
-  });
+// GANTI PAKE LINK RAILWAY LO
+const API_URL = "https://bjt-fullstack-production.up.railway.app/api/jadwal";
 
+function Jadwal() {
+  const [jadwal, setJadwal] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [matkul, setMatkul] = useState("");
   const [hari, setHari] = useState("Senin");
   const [jam, setJam] = useState("");
 
+  // AMBIL TOKEN DULU
+  const token = localStorage.getItem("bjt_token");
+
+  // === 1. FETCH DATA (Pake Token) ===
+  const fetchJadwal = async () => {
+    try {
+      const response = await fetch(API_URL, {
+        headers: { Authorization: token }, // <--- INI KTP-NYA
+      });
+      const data = await response.json();
+      setJadwal(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error ambil jadwal:", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem("jadwalKuliah", JSON.stringify(jadwal));
-  }, [jadwal]);
+    if (token) fetchJadwal();
+  }, [token]);
 
-  const tambahJadwal = () => {
+  // === 2. TAMBAH DATA (Pake Token) ===
+  const tambahJadwal = async () => {
     if (!matkul || !jam) return;
-    const baru = { id: Date.now(), matkul, hari, jam };
-    setJadwal([...jadwal, baru]);
-    setMatkul("");
-    setJam("");
+    const itemBaru = { matkul, hari, jam };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token, // <--- INI KTP-NYA
+        },
+        body: JSON.stringify(itemBaru),
+      });
+
+      fetchJadwal(); // Refresh list
+      setMatkul("");
+      setJam("");
+    } catch (error) {
+      alert("Gagal simpen ke server!");
+    }
   };
 
-  const hapusJadwal = (id) => {
-    setJadwal(jadwal.filter((j) => j.id !== id));
+  // === 3. HAPUS DATA (Pake Token) ===
+  const hapusJadwal = async (id) => {
+    const backup = [...jadwal];
+    setJadwal(jadwal.filter((j) => j._id !== id));
+
+    try {
+      await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: token }, // <--- INI KTP-NYA
+      });
+    } catch (error) {
+      alert("Gagal hapus!");
+      setJadwal(backup);
+    }
   };
 
+  // Logic Kalender & Sorting tetep sama
   const addToCalender = (item) => {
     const dayIndexMap = {
       Minggu: 0,
@@ -37,35 +82,26 @@ function Jadwal() {
       Jumat: 5,
       Sabtu: 6,
     };
-
     const targetDayIndex = dayIndexMap[item.hari];
     const now = new Date();
     const currentDayIndex = now.getDay();
-
     let daysUntilTarget = targetDayIndex - currentDayIndex;
-    if (daysUntilTarget < 0) {
-      daysUntilTarget += 7;
-    }
-
+    if (daysUntilTarget < 0) daysUntilTarget += 7;
     const targetDate = new Date();
     targetDate.setDate(now.getDate() + daysUntilTarget);
-
     const yyyy = targetDate.getFullYear();
     const mm = String(targetDate.getMonth() + 1).padStart(2, "0");
     const dd = String(targetDate.getDate()).padStart(2, "0");
-
     const [hour, minute] = item.jam.split(":");
     const startTime = `${yyyy}${mm}${dd}T${hour}${minute}00`;
     const endTime = `${yyyy}${mm}${dd}T${String(Number(hour) + 2).padStart(
       2,
       "0"
     )}${minute}00`;
-
     const details = `Kuliah ${item.matkul} hari ${item.hari}`;
     const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
       item.matkul
     )}&dates=${startTime}/${endTime}&details=${details}&recur=RRULE:FREQ=WEEKLY`;
-
     window.open(googleUrl, "_blank");
   };
 
@@ -78,7 +114,6 @@ function Jadwal() {
     Sabtu: 6,
     Minggu: 7,
   };
-
   const jadwalUrut = [...jadwal].sort((a, b) => {
     const bedaHari = urutanHari[a.hari] - urutanHari[b.hari];
     if (bedaHari !== 0) return bedaHari;
@@ -97,8 +132,6 @@ function Jadwal() {
           </p>
           <p className="text-sm text-red-700 italic leading-relaxed">
             Lo kira duit UKT turun dari langit? Kurang-kurangin titip absen,
-            kasian ortu lo capek-capek kerja cuma buat biayain lo tidur di
-            kelas.
           </p>
         </div>
       </div>
@@ -107,7 +140,7 @@ function Jadwal() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <div className="md:col-span-6">
             <label className="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">
-              Mata Kuliah
+              Jadwal
             </label>
             <input
               className="w-full bg-slate-50 border border-slate-200 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
@@ -126,19 +159,13 @@ function Jadwal() {
               value={hari}
               onChange={(e) => setHari(e.target.value)}
             >
-              {[
-                "Senin",
-                "Selasa",
-                "Rabu",
-                "Kamis",
-                "Jumat",
-                "Sabtu",
-                "Minggu",
-              ].map((day) => (
-                <option key={day} value={day}>
-                  {day}
-                </option>
-              ))}
+              {["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].map(
+                (day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                )
+              )}
             </select>
           </div>
 
@@ -175,7 +202,7 @@ function Jadwal() {
         ) : (
           jadwalUrut.map((item) => (
             <div
-              key={item.id}
+              key={item._id}
               className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-500 flex justify-between items-center hover:shadow-md transition"
             >
               <div>
@@ -213,7 +240,7 @@ function Jadwal() {
 
                 <button
                   className="w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition"
-                  onClick={() => hapusJadwal(item.id)}
+                  onClick={() => hapusJadwal(item._id)}
                   title="Hapus Jadwal"
                 >
                   🗑️

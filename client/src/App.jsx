@@ -1,19 +1,27 @@
+// client/src/App.jsx
 import { useEffect, useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Jadwal from "./pages/Jadwal.jsx";
 import Pomodoro from "./pages/Pomodoro.jsx";
 import Pengguna from "./pages/Pengguna.jsx";
-import DetailPengguna from "./pages/DetailPengguna.jsx";
+// import DetailPengguna from "./pages/DetailPengguna.jsx";
 import Profile from "./pages/Profile.jsx";
 import IntroModal from "./components/IntroModal.jsx";
+import Login from "./pages/Login.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
+const API_PROFILE =
+  "https://bjt-fullstack-production.up.railway.app/api/auth/profile";
 
 function App() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
+  const loginPage = location.pathname === "/login";
+
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("userProfile");
+    const saved = localStorage.getItem("bjt_user");
     return saved
       ? JSON.parse(saved)
       : {
@@ -21,12 +29,29 @@ function App() {
           role: "",
           bio: "",
           photo: null,
+          customAlarm: null,
         };
   });
 
+  const token = localStorage.getItem("bjt_token");
+
   useEffect(() => {
-    localStorage.setItem("userProfile", JSON.stringify(user));
-  }, [user]);
+    const fetchUserProfile = async () => {
+      if (!token) return;
+      try {
+        const res = await fetch(API_PROFILE, {
+          headers: { Authorization: token },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        }
+      } catch (err) {
+        console.error("Gagal ambil profil cloud", err);
+      }
+    };
+    fetchUserProfile();
+  }, [token]);
 
   const MENU_ITEMS = [
     { path: "/", label: "ToDo" },
@@ -50,13 +75,21 @@ function App() {
     }`;
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("bjt_token");
+    localStorage.removeItem("bjt_user");
+    window.location.href = "/login";
+  };
+
+  const showNavbar = location.pathname !== "/login" && token;
+
   return (
     <div className="min-h-screen flex flex-col">
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
+      {showNavbar && (
+        <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+          <div className="container mx-auto px-4 py-3 flex justify-between items-center">
             <div className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Basthatan
+              BJT
             </div>
 
             <div className="hidden md:flex items-center gap-2">
@@ -69,7 +102,12 @@ function App() {
                   {item.label}
                 </Link>
               ))}
-
+              <button
+                onClick={handleLogout}
+                className="text-xs text-red-500 hover:underline ml-2"
+              >
+                Logout
+              </button>
               <Link
                 to="/profile"
                 className="ml-4 flex items-center gap-2 pl-4 border-l border-slate-200 group"
@@ -102,46 +140,33 @@ function App() {
                   className="w-8 h-8 rounded-full object-cover border border-slate-200"
                 />
               </Link>
-
               <button
                 className="text-slate-600 hover:text-indigo-600 focus:outline-none"
                 onClick={() => setIsOpen(!isOpen)}
               >
-                {isOpen ? (
-                  <svg
-                    className="w-8 h-8"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-8 h-8"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
-                )}
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d={
+                      isOpen
+                        ? "M6 18L18 6M6 6l12 12"
+                        : "M4 6h16M4 12h16M4 18h16"
+                    }
+                  />
+                </svg>
               </button>
             </div>
           </div>
 
           {isOpen && (
-            <div className="md:hidden mt-4 flex flex-col gap-3 pb-4 animate-fadeIn">
+            <div className="md:hidden mt-4 flex flex-col gap-3 pb-4 animate-fadeIn px-4">
               {MENU_ITEMS.map((item) => (
                 <Link
                   key={item.path}
@@ -157,35 +182,76 @@ function App() {
                 className={getLinkClass("/profile", true)}
                 onClick={() => setIsOpen(false)}
               >
-                Profil
+                😎 Edit Profil Saya
               </Link>
             </div>
           )}
-        </div>
-      </nav>
+        </nav>
+      )}
 
-      <main className="flex-grow container mx-auto px-4 py-6">
+      {/* MAIN CONTENT */}
+      <main
+        className={`flex-grow ${
+          !loginPage ? "container mx-auto px-4 py-6" : ""
+        }`}
+      >
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/jadwal" element={<Jadwal />} />
-          <Route path="/fokus" element={<Pomodoro />} />
-          <Route path="/pengguna" element={<Pengguna />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          ></Route>
+          <Route
+            path="/jadwal"
+            element={
+              <ProtectedRoute>
+                <Jadwal />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/fokus"
+            element={
+              <ProtectedRoute>
+                <Pomodoro user={user} setUser={setUser} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pengguna"
+            element={
+              <ProtectedRoute>
+                <Pengguna />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/profile"
-            element={<Profile user={user} setUser={setUser} />}
+            element={
+              <ProtectedRoute>
+                <Profile user={user} setUser={setUser} />
+              </ProtectedRoute>
+            }
           />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </main>
 
-      <footer className="bg-white py-6 text-center text-slate-400 text-sm border-t border-slate-200">
-        <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center gap-1">
-          <span>&copy; {new Date().getFullYear()}</span>
-          <span className="sm:mx-2">Made by Proud</span>
-          <span className="hidden sm:inline">|</span>
-          <span>Basthatan a.k.a Baby Jesus a.k.a Baß</span>
-        </div>
-      </footer>
-      <IntroModal />
+      {showNavbar && (
+        <footer className="bg-white py-6 text-center text-slate-400 text-sm border-t border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center gap-1">
+            <span>&copy; {new Date().getFullYear()}</span>
+            <span className="sm:mx-2">Made by Proud</span>
+            <span className="hidden sm:inline">|</span>
+            <span>Basthatan a.k.a Baby Jesus a.k.a Baß</span>
+          </div>
+        </footer>
+      )}
+
+      {showNavbar && <IntroModal />}
     </div>
   );
 }

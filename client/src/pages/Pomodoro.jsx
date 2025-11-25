@@ -2,17 +2,44 @@
 import { useState, useEffect, useRef } from "react";
 
 const DEFAULT_ALARM = "/alarm.mp3";
+const API_PROFILE =
+  "https://bjt-fullstack-production.up.railway.app/api/auth/profile";
 
-function Pomodoro() {
+function Pomodoro({ user, setUser }) {
   const [waktu, setWaktu] = useState(25 * 60);
   const [aktif, setAktif] = useState(false);
   const [istirahat, setIstirahat] = useState(false);
 
-  const [audioSrc, setAudioSrc] = useState(() => {
-    return localStorage.getItem("customAlarm") || DEFAULT_ALARM;
-  });
+  const [audioSrc, setAudioSrc] = useState(user.customAlarm || DEFAULT_ALARM);
 
   const fileInputReff = useRef(null);
+
+  useEffect(() => {
+    if (user.customAlarm) {
+      setAudioSrc(user.customAlarm);
+    }
+  }, [user]);
+
+  const saveAlarmToCloud = async (base64audio) => {
+    const token = localStorage.getItem("bjt_token");
+    try {
+      const res = await fetch(API_PROFILE, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify({ customAlarm: base64audio }),
+      });
+      if (res.ok) {
+        const updatedUser = await res.json();
+        setUser(updatedUser);
+        alert("Alarm kesimpen di Cloud! Login di mana aja bunyinya tetep ini.");
+      }
+    } catch (error) {
+      alert("Gagal upload ke cloud. Internet lemot?");
+    }
+  };
 
   useEffect(() => {
     if ("Notification" in window && Notification.permission !== "granted") {
@@ -24,7 +51,7 @@ function Pomodoro() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > 2 * 2048 * 2048) {
       Alert(
         "File-nya kegedean, mas/mba... Max 2mb aja biar webnya lancar... Cihuyyy"
       );

@@ -1,9 +1,16 @@
 // src/pages/Profile.jsx
 import { useState, useRef } from "react";
 
+const API_PROFILE =
+  "https://bjt-fullstack-production.up.railway.app/api/auth/profile";
+
 function Profile({ user, setUser }) {
   const [formData, setFormData] = useState(user);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setFormData(user);
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,9 +33,25 @@ function Profile({ user, setUser }) {
     reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
-    setUser(formData);
-    alert("Profil berhasil di-update. Hidup lu kapan?");
+  const handleSave = async () => {
+    const token = localStorage.getItem("bjt_token");
+    try {
+      const res = await fetch(API_PROFILE, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: token },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        const updatedData = await res.json();
+        setUser(updatedData);
+        alert("Profil berhasil di-update. Hidup lu kapan?");
+      } else {
+        alert("Gagal save, kegedean file-nya dongo. kecilin filenya...");
+      }
+    } catch (error) {
+      alert("Server Error");
+    }
   };
 
   return (

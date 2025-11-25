@@ -1,37 +1,48 @@
 // src/pages/Home.jsx
 import { useState, useEffect } from "react";
 import ToDoList from "../components/ToDoList.jsx";
-import { Link } from "react-router-dom";
-import QueenList from "../components/QueenList.jsx";
+import { Link, useNavigate } from "react-router-dom";
 
-const API_URL =
-  "https://bitches-backend-api-production.up.railway.app/api/todos";
+const API_URL = "https://bjt-fullstack-production.up.railway.app/api/todos";
 
 function Home() {
   const [listKegiatan, setListKegiatan] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [inputKegiatan, setInputKegiatan] = useState("");
   const [inputJam, setInputJam] = useState("");
   const [inputTanggal, setInputTanggal] = useState("");
-
   const [showRant, setShowRant] = useState(false);
 
-  useEffect(() => {
-    fetchTodos();
-  }, []);
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("bjt_token");
 
   const fetchTodos = async () => {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, {
+        headers: {
+          Authorization: token,
+        },
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem("bjt_token");
+        navigate("/login");
+        return;
+      }
+
       const data = await response.json();
       setListKegiatan(data);
       setLoading(false);
     } catch (error) {
-      console.error("Gagal Ambil Data", error);
+      console.error("Gagal ambil data:", error);
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (token) fetchTodos();
+  }, [token]);
 
   const handleTambahKegiatan = async () => {
     if (inputKegiatan.trim() === "") return;
@@ -40,56 +51,65 @@ function Home() {
       nama: inputKegiatan,
       jam: inputJam,
       tanggal: inputTanggal,
-      status: false,
+      done: false,
     };
 
     try {
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
-          "content-type": "application/json",
+          "Content-Type": "application/json",
+          Authorization: token,
         },
         body: JSON.stringify(kegiatanBaru),
       });
+
       const dataSaved = await response.json();
-      setListKegiatan((prev) => [...prev, kegiatanBaru]);
+      setListKegiatan((prev) => [...prev, dataSaved]);
+
       setInputKegiatan("");
       setInputJam("");
       setInputTanggal("");
     } catch (error) {
-      aler("Gagal simpen list lu ke server. coba lagi ya...");
+      alert("Gagal nyimpen ke server bro :(");
     }
   };
 
   const hapusKegiatan = async (id) => {
     const backup = [...listKegiatan];
-    setListKegiatan(listKegiatan.filter((kegiatan) => kegiatan._id !== id));
+    setListKegiatan((prev) => prev.filter((item) => item._id !== id));
 
     try {
-      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: token,
+        },
+      });
     } catch (error) {
-      alert("Gagal hapus kegiatan dari server, coba lagi ya...");
+      alert("Gagal hapus di server!");
       setListKegiatan(backup);
     }
   };
 
   const kegiatanSelesai = async (id, statusSekarang) => {
-    const itemTarget = listKegiatan.find((kegiatan) => kegiatan._id === id);
-    setListKegiatan((kegiatanSebelumnya) =>
-      kegiatanSebelumnya.map((kegiatan) =>
-        kegiatan._id === id
-          ? { ...kegiatan, status: !statusSekarang }
-          : kegiatan
+    setListKegiatan((prev) =>
+      prev.map((item) =>
+        item._id === id ? { ...item, done: !statusSekarang } : item
       )
     );
+
     try {
       await fetch(`${API_URL}/${id}`, {
         method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ status: !statusSekarang }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token, // <--- INI KTP-NYA
+        },
+        body: JSON.stringify({ done: !statusSekarang }),
       });
     } catch (error) {
-      alert("Gagal update status kegiatan di server, coba lagi ya...");
+      alert("Gagal update status!");
     }
   };
 
@@ -291,9 +311,6 @@ function Home() {
             />
           ))
         )}
-      </div>
-      <div className="mt-10">
-        <QueenList />
       </div>
     </div>
   );

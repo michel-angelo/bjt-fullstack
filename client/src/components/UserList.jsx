@@ -1,90 +1,141 @@
-// src/components/UserList.jsx
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+
+// GANTI URL SESUAI PRODUCTION NANTI
+const API_USERS = "https://bjt-fullstack-production.up.railway.app/api/users";
+const DEFAULT_ALARM = "/alarm.mp3"; // Pastiin ada file ini di folder public
 
 function UserList() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [playingId, setPlayingId] = useState(null); // Biar tau siapa yg lagi bunyi
+
+  // Ambil Token
+  const token = localStorage.getItem("bjt_token");
 
   useEffect(() => {
-    const ambilData = async () => {
+    const fetchUsers = async () => {
       try {
-        const response = await fetch(
-          "https://jsonplaceholder.typicode.com/users"
-        );
-
-        const data = await response.json();
+        const res = await fetch(API_USERS, {
+          headers: { Authorization: token },
+        });
+        const data = await res.json();
         setUsers(data);
         setLoading(false);
       } catch (error) {
-        console.log("Error, Gagal mengambil data", error);
+        console.error("Gagal load user:", error);
         setLoading(false);
       }
     };
-    ambilData();
-  }, []);
 
-  if (loading) {
+    if (token) fetchUsers();
+  }, [token]);
+
+  // Fungsi Putar Alarm User Lain
+  const playAlarm = (userAudio, userId) => {
+    // Kalo lagi bunyi, stop dulu (reset)
+    if (playingId) {
+      // Opsional: Kalo mau stop audio sebelumnya bisa pake ref,
+      // tapi biar simpel kita biarin numpuk atau user klik lagi.
+      // Disini kita cuma ubah icon status aja.
+      setPlayingId(null);
+    }
+
+    const audioSource = userAudio || DEFAULT_ALARM;
+    const audio = new Audio(audioSource);
+
+    setPlayingId(userId); // Set icon jadi "Playing"
+
+    audio.play().catch((e) => alert("Gagal play audio. Format rusak kali?"));
+
+    // Pas kelar, balikin icon
+    audio.onended = () => setPlayingId(null);
+  };
+
+  if (loading)
     return (
-      <div className="flex flex-col justify-center items-center h-64">
-        Lagi Loading... Masih lebih cepet ini daripada otak lo pas ditanya
-        dosen.
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="text-center py-20 animate-pulse">
+        <p className="text-4xl">👥</p>
+        <p className="text-slate-500 font-bold mt-2">
+          Lagi ngabsen warga BJT...
+        </p>
       </div>
     );
-  }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6 border-l-4 border-indigo-600 pl-4 text-center">
-        Absensi Domba-Domba Tersesat yang Butuh Pertolongan.
-      </h2>
+    <div className="max-w-6xl mx-auto pb-20">
+      {/* HEADER */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-extrabold text-slate-800 mb-2">
+          🏆 Hall of <span className="text-indigo-600">Fame</span>
+        </h1>
+        <p className="text-slate-500 max-w-lg mx-auto">
+          Daftar manusia-manusia kuat yang mencoba produktif di tengah gempuran
+          tugas dan mental breakdown.
+        </p>
+      </div>
 
+      {/* GRID USER */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {users.map((user) => (
           <div
-            key={user.id}
-            className="bg-white p-6 rounded-xl shadow-sm hover:shadow-xl border border-slate-100 hover:border-indigo-100 transition-all duration-300 transform hover:-translate-y-1"
+            key={user._id}
+            className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
           >
-            <div className="flex items-center gap-4 mb-4">
-              {/* Avatar Placeholder pake inisial */}
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
-                {user.name.charAt(0)}
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-800">{user.name}</h3>
-                <p className="text-xs text-indigo-500 font-medium">
-                  @{user.username}
-                </p>
-              </div>
+            {/* BACKGROUND HEADER CARD */}
+            <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 relative">
+              {/* Tombol Play Alarm (Absolute di pojok kanan atas) */}
+              <button
+                onClick={() => playAlarm(user.customAlarm, user._id)}
+                className={`absolute top-4 right-4 bg-white/20 backdrop-blur-md border border-white/30 text-white p-2 rounded-full hover:bg-white hover:text-indigo-600 transition shadow-lg ${
+                  playingId === user._id
+                    ? "animate-bounce bg-white text-indigo-600"
+                    : ""
+                }`}
+                title="Cek Alarm Dia"
+              >
+                {playingId === user._id ? "🔊" : "▶️"}
+              </button>
             </div>
 
-            <div className="space-y-2 text-sm text-slate-600">
-              <p className="flex items-center gap-2">
-                📧 <span className="truncate">{user.email}</span>
-              </p>
-              <p className="flex items-center gap-2">
-                🏢 <span>{user.company.name}</span>
-              </p>
-              <p className="flex items-center gap-2">
-                🌐{" "}
-                <a
-                  href={`http://${user.website}`}
-                  target="_blank"
-                  className="text-blue-500 hover:underline"
-                >
-                  {user.website}
-                </a>
-              </p>
-              <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-                <span className="text-xs text-slate-400">ID: {user.id}</span>
+            {/* ISI CARD */}
+            <div className="px-6 pb-6 relative">
+              {/* FOTO PROFIL (Nongol dikit ke atas) */}
+              <div className="-mt-12 mb-4 flex justify-between items-end">
+                <img
+                  src={
+                    user.photo ||
+                    `https://ui-avatars.com/api/?name=${user.name}&background=random`
+                  }
+                  alt={user.name}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md bg-white"
+                />
 
-                <Link
-                  to={`/pengguna/${user.id}`}
-                  className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-600 hover:text-white transition"
-                >
-                  Lihat Detail &rarr;
-                </Link>
+                {/* Badge Role Kecil */}
+                <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-full uppercase tracking-wider mb-1">
+                  {user.role || "NPC"}
+                </span>
+              </div>
+
+              {/* INFO USER */}
+              <div>
+                <h3 className="font-bold text-xl text-slate-800 truncate">
+                  {user.name || "Anonim"}
+                </h3>
+                <p className="text-indigo-500 text-xs font-semibold mb-3 truncate">
+                  {user.customAlarm
+                    ? "🎵 Punya Custom Alarm"
+                    : "🔇 Alarm Standar"}
+                </p>
+
+                {/* BIO (Kutipan) */}
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 relative">
+                  <span className="text-4xl text-slate-200 absolute -top-2 -left-1 font-serif">
+                    “
+                  </span>
+                  <p className="text-sm text-slate-600 italic relative z-10 line-clamp-3">
+                    {user.bio || "Orang ini terlalu malas buat ngisi bio."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
