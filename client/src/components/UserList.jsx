@@ -56,7 +56,7 @@ function UserList() {
       <div className="text-center py-20 animate-pulse">
         <p className="text-4xl">👥</p>
         <p className="text-slate-500 font-bold mt-2">
-          Lagi ngabsen warga BJT...
+          Sedang mengambil data para Domba
         </p>
       </div>
     );
