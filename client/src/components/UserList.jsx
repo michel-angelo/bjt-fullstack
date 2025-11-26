@@ -79,7 +79,7 @@ function UserList() {
         {users.map((user) => (
           <div
             key={user._id}
-            className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
+            className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-scroll hover:shadow-xl transition-all duration-300 group hover:-translate-y-1"
           >
             {/* BACKGROUND HEADER CARD */}
             <div className="h-24 bg-gradient-to-r from-indigo-500 to-purple-600 relative">
