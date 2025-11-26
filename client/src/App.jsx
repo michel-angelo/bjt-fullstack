@@ -56,7 +56,7 @@ function App() {
     { path: "/", label: "ToDo" },
     { path: "/jadwal", label: "Jadwal" },
     { path: "/fokus", label: "Fokus" },
-    { path: "/pengguna", label: "User" },
+    { path: "/pengguna", label: "Domba's" },
   ];
 
   const getLinkClass = (path, isMobile = false) => {
