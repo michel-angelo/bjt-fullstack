@@ -9,6 +9,7 @@ import Profile from "./pages/Profile.jsx";
 import IntroModal from "./components/IntroModal.jsx";
 import Login from "./pages/Login.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import GlobalChat from "./components/GlobalChat.jsx";
 
 const API_PROFILE =
   "https://bjt-fullstack-production.up.railway.app/api/auth/profile";
