@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
-// GANTI PAKE LINK RAILWAY LO
 const API_URL = "https://bjt-fullstack-production.up.railway.app/api/jadwal";
 
 function Jadwal() {
@@ -10,14 +10,12 @@ function Jadwal() {
   const [hari, setHari] = useState("Senin");
   const [jam, setJam] = useState("");
 
-  // AMBIL TOKEN DULU
   const token = localStorage.getItem("bjt_token");
 
-  // === 1. FETCH DATA (Pake Token) ===
   const fetchJadwal = async () => {
     try {
       const response = await fetch(API_URL, {
-        headers: { Authorization: token }, // <--- INI KTP-NYA
+        headers: { Authorization: token },
       });
       const data = await response.json();
       setJadwal(data);
@@ -32,9 +30,16 @@ function Jadwal() {
     if (token) fetchJadwal();
   }, [token]);
 
-  // === 2. TAMBAH DATA (Pake Token) ===
   const tambahJadwal = async () => {
-    if (!matkul || !jam) return;
+    if (!matkul || !jam) {
+      Swal.fire({
+        icon: "warning",
+        title: "Isi dulu kocak...",
+        text: "Isi dulu Matkul sama Jam-nya, jangan males!",
+      });
+      return;
+    }
+
     const itemBaru = { matkul, hari, jam };
 
     try {
@@ -42,32 +47,62 @@ function Jadwal() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token, // <--- INI KTP-NYA
+          Authorization: token,
         },
         body: JSON.stringify(itemBaru),
       });
 
-      fetchJadwal(); // Refresh list
+      fetchJadwal();
       setMatkul("");
       setJam("");
+
+      Swal.fire({
+        icon: "success",
+        title: "Tercatat!",
+        text: "Jadwal penderitaan bertambah.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
     } catch (error) {
-      alert("Gagal simpen ke server!");
+      Swal.fire({
+        icon: "error",
+        title: "Error Blog...",
+        text: "Gagal nyimpen ke server.",
+      });
     }
   };
 
-  // === 3. HAPUS DATA (Pake Token) ===
   const hapusJadwal = async (id) => {
-    const backup = [...jadwal];
-    setJadwal(jadwal.filter((j) => j._id !== id));
+    const result = await Swal.fire({
+      title: "Yakin mau dihapus?",
+      text: "Jadwal ini bakal ilang selamanya loh!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Bacot, hapus aja!",
+      cancelButtonText: "Gak jadi",
+    });
 
-    try {
-      await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: token }, // <--- INI KTP-NYA
-      });
-    } catch (error) {
-      alert("Gagal hapus!");
-      setJadwal(backup);
+    if (result.isConfirmed) {
+      const backup = [...jadwal];
+      setJadwal((prev) => prev.filter((j) => j._id !== id));
+      try {
+        await fetch(`${API_URL}/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: token },
+        });
+        Swal.fire({
+          title: "Terhapus!",
+          text: "Jadwal berhasil dibuang ke tempat sampah.",
+          icon: "success",
+          timer: 1000,
+          showConfirmButton: false,
+        });
+      } catch (error) {
+        Swal.fire("Error", "Gagal hapus di server!", "error");
+        setJadwal(backup);
+      }
     }
   };
 

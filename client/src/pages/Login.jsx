@@ -1,6 +1,7 @@
 // client/src/pages/Login.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const API_BASE_URL = "https://bjt-fullstack-production.up.railway.app/api/auth";
 
@@ -28,19 +29,37 @@ function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || "Something went wrong");
+        Swal.fire({
+          icon: "error",
+          title: "ERROOOOOR BLOOOGGGG....",
+          text:
+            data.error ||
+            "Ada yang error pokoknyaa... coba ulang lagiii.......",
+          confirmButtonColor: "#d33",
+        });
         setLoading(false);
         return;
       }
 
       if (register) {
-        alert("Registration successful! Please log in.");
+        Swal.fire({
+          icon: "success",
+          title: "Nice Tim!",
+          text: "Akun lu udah ada, langsung login ae...",
+          confirmButtonColor: "#4f46e5",
+        });
         setRegister(false);
       } else {
         localStorage.setItem("bjt_token", data.token);
         localStorage.setItem("bjt_user", JSON.stringify(data.user));
 
-        alert("Login successful!");
+        Swal.fire({
+          icon: "success",
+          title: "Welcome Back!",
+          text: "Halo Domba-Domba tersesat...",
+          showConfirmButton: false,
+          timer: 1500,
+        });
         navigate("/");
         window.location.reload();
       }

@@ -9,8 +9,7 @@ const app = express();
 // PORT: Railway otomatis ngasih port di process.env.PORT (biasanya 8080)
 const PORT = process.env.PORT || 3000;
 
-// === 1. SETTING SATPAM (CORS) - WAJIB DI PALING ATAS ===
-// origin: "*" artinya bolehin siapa aja (Netlify, Vercel, Localhost) masuk.
+// === 1. SETTING (CORS) ===
 app.use(
   cors({
     origin: "*",
@@ -21,7 +20,6 @@ app.use(
 );
 
 // === 2. SETTING PARSER (PEMBACA DATA) ===
-// Cukup sekali aja, langsung set limit gede buat foto/mp3
 app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ limit: "15mb", extended: true }));
 
@@ -85,7 +83,6 @@ const User = mongoose.model("User", UserSchema);
 // ROUTES
 // ==========================
 
-// Cek Server Nyala
 app.get("/", (req, res) => {
   res.send("Server BJT Menyala 🔥 Siap menerima hujatan.");
 });
@@ -94,7 +91,6 @@ app.get("/", (req, res) => {
 app.post("/api/auth/register", async (req, res) => {
   const { username, password } = req.body;
   try {
-    // Cek user ada ga
     const existingUser = await User.findOne({ username });
     if (existingUser)
       return res.status(400).json({ error: "Username udah dipake!" });
@@ -105,7 +101,7 @@ app.post("/api/auth/register", async (req, res) => {
     await User.create({ username, password: hashedPassword });
     res.status(201).json({ message: "User created" });
   } catch (e) {
-    console.error(e); // Liat error di log server kalo gagal
+    console.error(e);
     res.status(500).json({ error: "Gagal daftar, server pusing." });
   }
 });
@@ -217,7 +213,7 @@ app.get("/api/jadwal", verifyToken, async (req, res) => {
 app.post("/api/jadwal", verifyToken, async (req, res) => {
   try {
     const dataBaru = await Jadwal.create({ ...req.body, userId: req.user.id });
-    res.status(201).json(dataBaru); // Gw ilangin kurung kurawal biar langsung dapet object
+    res.status(201).json(dataBaru);
   } catch (error) {
     res.status(500).json({ message: "Gagal save jadwal" });
   }
@@ -236,7 +232,6 @@ app.delete("/api/jadwal/:id", verifyToken, async (req, res) => {
   }
 });
 
-// === JALANIN SERVER ===
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import ToDoList from "../components/ToDoList.jsx";
 import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const API_URL = "https://bjt-fullstack-production.up.railway.app/api/todos";
 
@@ -71,24 +72,48 @@ function Home() {
       setInputJam("");
       setInputTanggal("");
     } catch (error) {
-      alert("Gagal nyimpen ke server bro :(");
+      Swal.fire({
+        icon: "error",
+        title: "Error blog...",
+        text: "gatau error pokoknya, coba cek lagi, keisi semua ga?",
+        timer: 1000,
+      });
     }
   };
 
   const hapusKegiatan = async (id) => {
-    const backup = [...listKegiatan];
-    setListKegiatan((prev) => prev.filter((item) => item._id !== id));
+    const result = await Swal.fire({
+      title: "Yakin mau dihapus?",
+      text: "Tugas ini bakal ilang selamanya loh!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, Hapus aja!",
+      cancelButtonText: "Gak jadi",
+    });
 
-    try {
-      await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: token,
-        },
-      });
-    } catch (error) {
-      alert("Gagal hapus di server!");
-      setListKegiatan(backup);
+    if (result.isConfirmed) {
+      const backup = [...listKegiatan];
+      setListKegiatan((prev) => prev.filter((item) => item._id !== id));
+
+      try {
+        await fetch(`${API_URL}/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: token },
+        });
+
+        Swal.fire({
+          title: "Terhapus!",
+          text: "Tugas berhasil dibuang ke tempat sampah.",
+          icon: "success",
+          timer: 1000,
+          showConfirmButton: false,
+        });
+      } catch (error) {
+        Swal.fire("Error", "Gagal hapus di server!", "error");
+        setListKegiatan(backup);
+      }
     }
   };
 
@@ -104,12 +129,29 @@ function Home() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token, // <--- INI KTP-NYA
+          Authorization: token,
         },
         body: JSON.stringify({ done: !statusSekarang }),
       });
     } catch (error) {
-      alert("Gagal update status!");
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+
+      Toast.fire({
+        icon: "error",
+        title: "Gagal update status! Cek internet.",
+      });
+
+      setListKegiatan((prev) =>
+        prev.map((item) =>
+          item._id === id ? { ...item, done: statusSekarang } : item
+        )
+      );
     }
   };
 

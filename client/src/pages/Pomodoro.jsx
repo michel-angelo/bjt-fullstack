@@ -1,5 +1,6 @@
 //src/pages/Pomodoro.jsx
 import { useState, useEffect, useRef } from "react";
+import Swal from "sweetalert2";
 
 const DEFAULT_ALARM = "/alarm.mp3";
 const API_PROFILE =
@@ -52,16 +53,20 @@ function Pomodoro({ user, setUser }) {
     if (!file) return;
 
     if (file.size > 2 * 2048 * 2048) {
-      Alert(
-        "File-nya kegedean, mas/mba... Max 2mb aja biar webnya lancar... Cihuyyy"
-      );
+      Swal.fire({
+        icon: "warning",
+        title: "Dongo lu yaa",
+        text: "Max 4MB aja. Jangan masukin lagu durasi 1 jam. Ini cuman alarm dongo!",
+      });
       return;
     }
 
     if (!file.type.startsWith("audio/")) {
-      alert(
-        "File Audio dong mba/mas... Jangan yang lain2... Pastiin MP3 atau WAV"
-      );
+      Swal.fire({
+        icon: "error",
+        title: "Dongo lagi...",
+        text: "Masukin file MP3 atau WAV aja dongo. jangan yang lain2",
+      });
       return;
     }
 
@@ -70,7 +75,13 @@ function Pomodoro({ user, setUser }) {
       const base64audio = reader.result;
       setAudioSrc(base64audio);
       localStorage.setItem("customAlarm", base64audio);
-      alert("Suara berhasil diganti... Enjoy your study w new alarm...");
+      Swal.fire({
+        icon: "success",
+        title: "Alarm Updated",
+        text: "berhasil udah, alarm lu udah custom!",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     };
     reader.readAsDataURL(file);
   };
@@ -79,7 +90,7 @@ function Pomodoro({ user, setUser }) {
     setAudioSrc(DEFAULT_ALARM);
     localStorage.removeItem("customAlarm");
     if (fileInputReff.current) fileInputReff.current.value = "";
-    alert("Back to default Alarm");
+    Swal.fire({ title: "Default", text: "Balik ke alarm default", time: 2000 });
   };
 
   const tesSuara = () => {
