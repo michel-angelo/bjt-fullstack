@@ -4,12 +4,13 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
-// PORT: Railway otomatis ngasih port di process.env.PORT (biasanya 8080)
 const PORT = process.env.PORT || 3000;
-
-// === 1. SETTING (CORS) ===
+const server = http.createServer(app);
+// === SETTING (CORS) ===
 app.use(
   cors({
     origin: "*",
@@ -18,6 +19,34 @@ app.use(
     optionsSuccessStatus: 204,
   })
 );
+
+// === SETUP SOCKET.IO ===
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    method: ["GET", "POST"],
+  },
+});
+
+io.on("connection", async (socket) => {
+  console.log(`⚡ User konek: ${socket.id}`);
+
+  try {
+    const history = await Chat.find().sort({ createdAt: -1 }).limit(50);
+    socket.emit("riwayat_pesan", history.reverse());
+  } catch (error) {
+    console.error("Gagal load history chat");
+  }
+
+  socket.on("kirim_pesan", async (data) => {
+    try {
+      const newChat = await Chat.create(data);
+      io.emit("terima_pesan", newChat);
+    } catch (error) {
+      console.error("Gagal simpen pesan");
+    }
+  });
+});
 
 // === 2. SETTING PARSER (PEMBACA DATA) ===
 app.use(express.json({ limit: "15mb" }));
@@ -79,6 +108,14 @@ const UserSchema = new mongoose.Schema({
 });
 const User = mongoose.model("User", UserSchema);
 
+const ChatSchema = new mongoose.Schema({
+  username: String,
+  text: String,
+  photo: String,
+  waktu: String,
+  createdAt: { type: Date, default: Date.now },
+});
+const Chat = mongoose.model("Chat", ChatSchema);
 // ==========================
 // ROUTES
 // ==========================
@@ -232,6 +269,6 @@ app.delete("/api/jadwal/:id", verifyToken, async (req, res) => {
   }
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server (Socket) running on port ${PORT}`);
 });

@@ -239,6 +239,8 @@ function App() {
         </Routes>
       </main>
 
+      {showNavbar && <GlobalChat user={user} />}
+
       {showNavbar && (
         <footer className="bg-white py-6 text-center text-slate-400 text-sm border-t border-slate-200">
           <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center gap-1">
