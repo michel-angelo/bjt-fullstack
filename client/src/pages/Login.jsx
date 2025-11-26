@@ -31,8 +31,8 @@ function Login() {
       if (!response.ok) {
         Swal.fire({
           icon: "error",
-          title: "ERROOOOOR BLOOOGGGG....",
-          text: "Ada yang error pokoknyaa... coba ulang lagiii.......",
+          title: "ERROR BLOG....",
+          text: "Username atau pasword lu salah tuh, coba cek lagi",
           confirmButtonColor: "#d33",
         });
         setLoading(false);
