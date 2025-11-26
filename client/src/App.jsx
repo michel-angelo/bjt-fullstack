@@ -101,12 +101,6 @@ function App() {
                   {item.label}
                 </Link>
               ))}
-              <button
-                onClick={handleLogout}
-                className="text-xs text-red-500 hover:underline ml-2"
-              >
-                Logout
-              </button>
               <Link
                 to="/profile"
                 className="ml-4 flex items-center gap-2 pl-4 border-l border-slate-200 group"
@@ -183,6 +177,12 @@ function App() {
               >
                 Profil
               </Link>
+              <button
+                onClick={handleLogout}
+                className="text-xs text-red-500 hover:underline ml-2"
+              >
+                Logout
+              </button>
             </div>
           )}
         </nav>
