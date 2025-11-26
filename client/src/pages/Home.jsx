@@ -52,7 +52,7 @@ function Home() {
       nama: inputKegiatan,
       jam: inputJam,
       tanggal: inputTanggal,
-      done: false,
+      status: false,
     };
 
     try {
@@ -120,7 +120,7 @@ function Home() {
   const kegiatanSelesai = async (id, statusSekarang) => {
     setListKegiatan((prev) =>
       prev.map((item) =>
-        item._id === id ? { ...item, done: !statusSekarang } : item
+        item._id === id ? { ...item, status: !statusSekarang } : item
       )
     );
 
@@ -131,7 +131,7 @@ function Home() {
           "Content-Type": "application/json",
           Authorization: token,
         },
-        body: JSON.stringify({ done: !statusSekarang }),
+        body: JSON.stringify({ status: !statusSekarang }),
       });
     } catch (error) {
       const Toast = Swal.mixin({
@@ -149,7 +149,7 @@ function Home() {
 
       setListKegiatan((prev) =>
         prev.map((item) =>
-          item._id === id ? { ...item, done: statusSekarang } : item
+          item._id === id ? { ...item, status: statusSekarang } : item
         )
       );
     }
@@ -349,7 +349,7 @@ function Home() {
               key={kegiatan._id}
               kegiatan={kegiatan}
               onHapus={() => hapusKegiatan(kegiatan._id)}
-              onSelesai={() => kegiatanSelesai(kegiatan._id, kegiatan.done)}
+              onSelesai={() => kegiatanSelesai(kegiatan._id, kegiatan.status)}
             />
           ))
         )}

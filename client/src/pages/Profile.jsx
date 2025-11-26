@@ -54,7 +54,6 @@ function Profile({ user, setUser }) {
           title: "Profil berhasil di-update",
           text: "Hidup lu kapan?",
           icon: "success",
-          timer: 1500,
         });
       } else {
         Swal.fire({
