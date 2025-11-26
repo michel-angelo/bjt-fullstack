@@ -35,10 +35,20 @@ function Pomodoro({ user, setUser }) {
       if (res.ok) {
         const updatedUser = await res.json();
         setUser(updatedUser);
-        alert("Alarm kesimpen di Cloud! Login di mana aja bunyinya tetep ini.");
+        Swal.fire({
+          icon: "success",
+          title: "Alarm Tersimpan",
+          text: "Alarm kesimpen di Cloud! Login di mana aja bunyinya tetep ini.",
+          confirmButtonText: "Sip",
+        });
       }
     } catch (error) {
-      alert("Gagal upload ke cloud. Internet lemot?");
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Upload",
+        text: "Gagal upload ke cloud. Internet lu lemot apa gimana?",
+        confirmButtonText: "Yaudasi",
+      });
     }
   };
 

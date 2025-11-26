@@ -1,5 +1,6 @@
 // src/pages/Profile.jsx
 import { useState, useRef, useEffect } from "react";
+import Swal from "sweetalert2";
 
 const API_PROFILE =
   "https://bjt-fullstack-production.up.railway.app/api/auth/profile";
@@ -22,7 +23,11 @@ function Profile({ user, setUser }) {
     if (!file) return;
 
     if (file.size > 2 * 2048 * 2048) {
-      alert("Pe'a kali lu ya, dibilang max 4MB… nurut napa.");
+      Swal.fire({
+        icon: "error",
+        title: "Dongo kali lu ya",
+        text: "Kegedean itu file potonya, Max 4mb aja.",
+      });
       return;
     }
 
@@ -45,12 +50,27 @@ function Profile({ user, setUser }) {
       if (res.ok) {
         const updatedData = await res.json();
         setUser(updatedData);
-        alert("Profil berhasil di-update. Hidup lu kapan?");
+        Swal.fire({
+          title: "Profil berhasil di-update",
+          text: "Hidup lu kapan?",
+          icon: "success",
+          timer: 1500,
+        });
       } else {
-        alert("Gagal save, kegedean file-nya dongo. kecilin filenya...");
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Save",
+          text: "Kegedean file-nya dongo. Kecilin dulu filenya...",
+          timer: 1500,
+        });
       }
     } catch (error) {
-      alert("Server Error");
+      Swal.fire({
+        icon: "error",
+        title: "Gatau lagi error",
+        text: "coba lagi",
+        timer: 1500,
+      });
     }
   };
 

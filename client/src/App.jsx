@@ -5,7 +5,6 @@ import Home from "./pages/Home.jsx";
 import Jadwal from "./pages/Jadwal.jsx";
 import Pomodoro from "./pages/Pomodoro.jsx";
 import Pengguna from "./pages/Pengguna.jsx";
-// import DetailPengguna from "./pages/DetailPengguna.jsx";
 import Profile from "./pages/Profile.jsx";
 import IntroModal from "./components/IntroModal.jsx";
 import Login from "./pages/Login.jsx";

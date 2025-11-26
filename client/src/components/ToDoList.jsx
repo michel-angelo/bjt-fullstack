@@ -1,4 +1,6 @@
 // src/components/ToDoList.jsx
+import Swal from "sweetalert2";
+
 function ToDoList({ kegiatan, onHapus, onSelesai }) {
   const containerClass = `group flex justify-between items-center p-4 bg-white rounded-xl border transition-all duration-300 hover:shadow-md ${
     kegiatan.status
@@ -10,7 +12,12 @@ function ToDoList({ kegiatan, onHapus, onSelesai }) {
 
   const addToCalendar = () => {
     if (!kegiatan.jam || !kegiatan.tanggal) {
-      alert("Isi tanggal dan jam dulu dong kalo mau pasang reminder!");
+      Swal.fire({
+        icon: "warning",
+        title: "Belom Lengkap",
+        text: "Isi tanggal dan jam dulu dong kalo mau pasang reminder!",
+        confirmButtonText: "Yaudah",
+      });
       return;
     }
 

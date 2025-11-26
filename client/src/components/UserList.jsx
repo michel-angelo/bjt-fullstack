@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
-// GANTI URL SESUAI PRODUCTION NANTI
 const API_USERS = "https://bjt-fullstack-production.up.railway.app/api/users";
-const DEFAULT_ALARM = "/alarm.mp3"; // Pastiin ada file ini di folder public
+const DEFAULT_ALARM = "/alarm.mp3";
 
 function UserList() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [playingId, setPlayingId] = useState(null); // Biar tau siapa yg lagi bunyi
+  const [playingId, setPlayingId] = useState(null);
 
-  // Ambil Token
   const token = localStorage.getItem("bjt_token");
 
   useEffect(() => {
@@ -30,24 +29,25 @@ function UserList() {
     if (token) fetchUsers();
   }, [token]);
 
-  // Fungsi Putar Alarm User Lain
   const playAlarm = (userAudio, userId) => {
-    // Kalo lagi bunyi, stop dulu (reset)
     if (playingId) {
-      // Opsional: Kalo mau stop audio sebelumnya bisa pake ref,
-      // tapi biar simpel kita biarin numpuk atau user klik lagi.
-      // Disini kita cuma ubah icon status aja.
       setPlayingId(null);
     }
 
     const audioSource = userAudio || DEFAULT_ALARM;
     const audio = new Audio(audioSource);
 
-    setPlayingId(userId); // Set icon jadi "Playing"
+    setPlayingId(userId);
 
-    audio.play().catch((e) => alert("Gagal play audio. Format rusak kali?"));
+    audio.play().catch((e) =>
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Play Audio",
+        text: "Formatnya rusak kali? Coba benerin dulu...",
+        confirmButtonText: "Ok",
+      })
+    );
 
-    // Pas kelar, balikin icon
     audio.onended = () => setPlayingId(null);
   };
 
