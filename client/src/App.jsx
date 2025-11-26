@@ -181,7 +181,7 @@ function App() {
                 className={getLinkClass("/profile", true)}
                 onClick={() => setIsOpen(false)}
               >
-                😎 Edit Profil Saya
+                Profil
               </Link>
             </div>
           )}

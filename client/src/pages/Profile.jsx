@@ -77,7 +77,7 @@ function Profile({ user, setUser }) {
     <div className="max-w-xl mx-auto">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-extrabold text-slate-800 mb-2">
-          😎 Profil <span className="text-indigo-600">Pengguna</span>
+          Profil <span className="text-indigo-600">Pengguna</span>
         </h1>
         <p className="text-slate-500">
           Biar aplikasi ini tau siapa yang ngisi hidupnya.
@@ -121,7 +121,7 @@ function Profile({ user, setUser }) {
               value={formData.name}
               onChange={handleChange}
               className="w-full bg-slate-50 border border-slate-200 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
-              placeholder="Siapa nama lu? gw tau hidup lu palsu, tapi seenggaknya taro nama asli disini."
+              placeholder="Siapa nama lu?"
             />
           </div>
 
@@ -157,7 +157,7 @@ function Profile({ user, setUser }) {
             onClick={handleSave}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transform active:scale-95 transition-all mt-4"
           >
-            💾 Simpan Profil
+            Simpan Profil
           </button>
         </div>
       </div>
