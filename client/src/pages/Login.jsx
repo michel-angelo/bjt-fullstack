@@ -32,9 +32,7 @@ function Login() {
         Swal.fire({
           icon: "error",
           title: "ERROOOOOR BLOOOGGGG....",
-          text:
-            data.error ||
-            "Ada yang error pokoknyaa... coba ulang lagiii.......",
+          text: "Ada yang error pokoknyaa... coba ulang lagiii.......",
           confirmButtonColor: "#d33",
         });
         setLoading(false);
