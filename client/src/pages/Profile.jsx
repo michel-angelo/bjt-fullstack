@@ -1,5 +1,5 @@
 // src/pages/Profile.jsx
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const API_PROFILE =
   "https://bjt-fullstack-production.up.railway.app/api/auth/profile";
